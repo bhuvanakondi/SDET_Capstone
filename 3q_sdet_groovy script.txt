@@ -1,0 +1,92 @@
+>reads excel file
+import org.apache.poi.ss.usermodel.*
+import org.apache.poi.xssf.usermodel.*
+
+// Define the path to your Excel file
+def excelFilePath = "C:\\Users\\prade\\OneDrive\\Desktop\\Sdet_Subregion.xlsx"
+// Define the sheet name
+def sheetName = "Sheet1"
+
+// Load the Excel file
+def file = new FileInputStream(excelFilePath)
+def workbook = new XSSFWorkbook(file)
+def sheet = workbook.getSheet(sheetName)
+
+// Assuming the data is in the first row (header) of the Excel sheet
+def headerRow = sheet.getRow(0)
+
+// Retrieve data from specific columns (assuming columns A, B, and C)
+def headerValue = headerRow.getCell(0).toString()
+
+// Print the header value for validation
+log.info("Header: $headerValue")
+
+// Iterate through rows (skip the header row)
+for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+    def currentRow = sheet.getRow(i)
+    def subregion = currentRow.getCell(0).toString()
+    // Print or use the retrieved data as needed
+    log.info("Subregion: $subregion")
+}
+
+// Close the Excel file
+file.close()
+============================================================================
+import org.apache.poi.ss.usermodel.*
+import org.apache.poi.xssf.usermodel.*
+
+// Define the path to your Excel file
+def excelFilePath = "C:\\Users\\prade\\OneDrive\\Desktop\\Sdet_Subregion.xlsx"
+// Define the sheet name
+def sheetName = "Sheet1"
+
+// Load the Excel file
+def file = new FileInputStream(excelFilePath)
+def workbook = new XSSFWorkbook(file)
+def sheet = workbook.getSheet(sheetName)
+
+try {
+    // Assuming the data is in the first row (header) of the Excel sheet
+    def headerRow = sheet.getRow(0)
+    // Retrieve data from specific columns (assuming columns A, B, and C)
+    def headerValue = headerRow.getCell(0).toString()
+    // Print the header value for validation
+    log.info("Header: $headerValue")
+
+    // Iterate through rows (skip the header row)
+    for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+        def currentRow = sheet.getRow(i)
+        // Retrieve data from specific columns of the current row
+        // Update your logic based on your specific requirements
+        def subregion = currentRow.getCell(0).toString()
+
+        // Update the REST request URL with the subregion from Excel
+        def restRequest = context.expand('${REST Request#Request}')
+        def updatedUrl = restRequest.replace('/subregion/Northern Europe', "/subregion/${subregion}")
+
+        // Set the updated URL back to the REST request
+        testRunner.testCase.getTestStepByName('REST Request').setPropertyValue('Request', updatedUrl)
+
+        // Print or use the retrieved data as needed
+        log.info("Subregion: $subregion")
+
+        // Execute the REST request
+        def response = testRunner.runTestStepByName('REST Request').getResponseContent()
+
+        // Print the response content for debugging
+        log.info("Response for $subregion: $response")
+
+        // Validate the response using assertions or custom logic
+        // For example, check if the response contains certain content
+        def expectedContent = "Expected Response Content for $subregion"  
+       // assert response.contains(expectedContent), "API response validation passed for subregion: $subregion. Expected content found: $expectedContent"
+
+
+
+    }
+    // If the loop completes without any assertion failures, log a positive message
+    log.info("All API responses validated successfully.")
+} finally {
+    // Close the Excel file
+    file.close()
+}
